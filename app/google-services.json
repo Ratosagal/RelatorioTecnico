@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "902765826193",
+    "project_id": "com-example-relatriotcni-f1408",
+    "storage_bucket": "com-example-relatriotcni-f1408.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:902765826193:android:206bf0dd822ac240496f30",
+        "android_client_info": {
+          "package_name": "com.example.relatriotcnicomitsubishielectric"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDieWxle2pfdI0VtkL0T_Rns5ynz0839y0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

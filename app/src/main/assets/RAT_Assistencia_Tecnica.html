@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RAT — Relatório de Assistência Técnica</title>
+<style>
+  :root{
+    --ink:#1b1f24;
+    --paper:#f3f1ec;
+    --card:#ffffff;
+    --line:#dcd7cc;
+    --red:#c8102e;
+    --red-dark:#960c22;
+    --steel:#2e3a46;
+    --steel-light:#5b6b7a;
+    --ok:#1c7a4d;
+    --warn:#b9760c;
+    --mono: 'Consolas','Courier New',monospace;
+    --sans: 'Segoe UI','Helvetica Neue',Arial,sans-serif;
+    --display: 'Arial Narrow','Segoe UI',Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;
+  }
+  .topbar{
+    background:var(--steel); color:#fff; padding:18px 24px;
+    display:flex; align-items:center; gap:16px; position:sticky; top:0; z-index:50;
+    box-shadow:0 2px 10px rgba(0,0,0,.25);
+  }
+  .logo-wrap{
+    display:flex; align-items:center; gap:10px; flex:0 0 auto;
+  }
+  .logo-diamond{ width:42px; height:38px; }
+  .logo-text{
+    font-family:var(--display); font-weight:800; font-size:10px;
+    line-height:1.25; letter-spacing:.5px; color:#fff; text-transform:uppercase; opacity:.9;
+  }
+  .logo-sep{
+    width:1px; height:36px; background:rgba(255,255,255,.2); margin:0 10px; flex:0 0 auto;
+  }
+  @media(max-width:480px){ .logo-text{ display:none; } .logo-sep{ margin:0 6px; } }
+  .topbar h1{
+    font-family:var(--display); font-weight:800; letter-spacing:.5px;
+    font-size:20px; margin:0; text-transform:uppercase;
+  }
+  .topbar .sub{
+    font-size:12px; color:#c9d2da; margin-top:2px; letter-spacing:.3px;
+  }
+  .topbar .right{margin-left:auto; display:flex; gap:10px; align-items:center; font-size:12px; color:#c9d2da;}
+  .status-dot{width:8px;height:8px;border-radius:50%; background:var(--ok); display:inline-block; margin-right:6px;}
+
+  main{max-width:880px; margin:0 auto; padding:24px 16px 120px;}
+
+  .section{
+    background:var(--card); border:1px solid var(--line); border-radius:4px;
+    margin-bottom:18px; overflow:hidden;
+  }
+  .section-head{
+    display:flex; align-items:center; gap:10px; padding:14px 18px;
+    border-bottom:1px solid var(--line); background:linear-gradient(180deg,#fafaf8,#f2f0eb);
+  }
+  .section-num{
+    font-family:var(--display); font-weight:800; color:#fff; background:var(--red);
+    width:26px;height:26px;border-radius:3px; display:flex; align-items:center; justify-content:center;
+    font-size:13px; flex:0 0 auto;
+  }
+  .section-head h2{
+    margin:0; font-size:15px; letter-spacing:.4px; text-transform:uppercase;
+    font-family:var(--display); font-weight:700; color:var(--steel);
+  }
+  .section-body{padding:18px;}
+
+  .grid{display:grid; gap:14px;}
+  .grid.cols-2{grid-template-columns:1fr 1fr;}
+  .grid.cols-3{grid-template-columns:1fr 1fr 1fr;}
+  @media (max-width:640px){
+    .grid.cols-2,.grid.cols-3{grid-template-columns:1fr;}
+    main{padding:16px 10px 110px;}
+    .topbar{padding:14px 14px;}
+  }
+
+  label{
+    display:block; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.4px; color:var(--steel-light); margin-bottom:5px;
+  }
+  label .req{color:var(--red);}
+  input[type=text], input[type=email], input[type=tel],
+  input[type=number], textarea, select{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:3px;
+    font-family:var(--sans); font-size:14px; background:#fdfdfc; color:var(--ink);
+    -webkit-appearance:none; appearance:none; box-sizing:border-box;
+  }
+  /* date e time: NÃO usar appearance:none — quebra picker nativo no iOS/Android */
+  input[type=date], input[type=time]{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:3px;
+    font-family:var(--sans); font-size:14px; background:#fdfdfc; color:var(--ink);
+    box-sizing:border-box; min-height:44px; display:block;
+  }
+  input:focus, textarea:focus, select:focus{
+    outline:none; border-color:var(--red); box-shadow:0 0 0 3px rgba(200,16,46,.12);
+  }
+  textarea{resize:vertical; min-height:70px; line-height:1.45;}
+  .field-mono input{font-family:var(--mono); letter-spacing:.5px;}
+  .field{margin-bottom:4px;}
+
+  .radio-row{display:flex; gap:18px; padding-top:4px;}
+  .radio-opt{display:flex; align-items:center; gap:6px; font-size:14px; cursor:pointer;}
+  .radio-opt input{width:auto;}
+
+  .toggle-block{
+    margin-top:14px; padding-top:14px; border-top:1px dashed var(--line); display:none;
+  }
+  .toggle-block.show{display:block;}
+
+  .photo-input{ display:none; }
+  .photo-btn{
+    display:inline-flex; align-items:center; gap:8px;
+    background:var(--steel); color:#fff; border:none; border-radius:4px;
+    padding:12px 20px; font-size:14px; font-weight:700; cursor:pointer;
+    font-family:var(--sans); transition:.15s; user-select:none; -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+  }
+  .photo-btn:active{ background:#111a22; transform:scale(.97); }
+  .photo-btn .photo-count{
+    background:rgba(255,255,255,.25); border-radius:10px;
+    padding:1px 7px; font-size:12px; font-weight:800;
+  }
+  .photo-area{ display:flex; flex-direction:column; gap:10px; }
+  .photo-area-top{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .photo-area-hint{ font-size:12px; color:var(--steel-light); }
+  .photo-btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:10px;
+    background:var(--steel); color:#fff; border:none; border-radius:4px;
+    padding:13px 22px; font-size:15px; font-weight:700; cursor:pointer;
+    font-family:var(--sans); user-select:none; -webkit-user-select:none;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+    width:100%; max-width:320px;
+  }
+  .photo-btn:active{ background:#111a22; }
+  .photo-btn .photo-count{
+    background:rgba(255,255,255,.25); border-radius:10px;
+    padding:2px 9px; font-size:13px; font-weight:800; min-width:24px; text-align:center;
+  }
+  .thumbs{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;}
+  .thumb{
+    position:relative; width:88px; height:88px; border-radius:4px; overflow:hidden;
+    border:1px solid var(--line); background:#eee;
+  }
+  .thumb img{width:100%;height:100%;object-fit:cover; display:block;}
+  .thumb .rm{
+    position:absolute; top:2px; right:2px; width:22px;height:22px; border-radius:50%;
+    background:rgba(20,20,20,.72); color:#fff; border:none; cursor:pointer; font-size:14px;
+    line-height:22px; text-align:center; padding:0; font-weight:bold;
+  }
+
+  .sig-wrap{
+    border:1px solid var(--line); border-radius:4px; background:#fdfdfc; touch-action:none;
+  }
+  canvas{display:block; width:100%; height:180px; cursor:crosshair;}
+  .sig-actions{display:flex; justify-content:space-between; align-items:center; margin-top:8px;}
+  .link-btn{
+    background:none; border:none; color:var(--red); font-size:12px; font-weight:700;
+    cursor:pointer; text-transform:uppercase; letter-spacing:.3px; padding:4px 0;
+  }
+
+  .footbar{
+    position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line);
+    padding:12px 16px; display:flex; gap:10px; justify-content:center; box-shadow:0 -4px 14px rgba(0,0,0,.08);
+    z-index:60; flex-wrap:wrap;
+  }
+  .btn{
+    font-family:var(--display); font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+    font-size:13px; padding:12px 22px; border-radius:3px; border:none; cursor:pointer;
+  }
+  .btn-primary{background:var(--red); color:#fff;}
+  .btn-primary:hover{background:var(--red-dark);}
+  .btn-ghost{background:#fff; color:var(--steel); border:1px solid var(--line);}
+  .btn-ghost:hover{border-color:var(--steel-light);}
+
+  .hint-block{
+    font-size:12.5px; color:var(--steel-light); padding:10px 18px; background:#fbf8f1;
+    border-top:1px solid var(--line); display:flex; gap:8px; align-items:flex-start;
+  }
+
+  .punch-row{
+    display:flex; flex-direction:column; gap:6px; width:100%;
+  }
+  .punch-row input[type=date],
+  .punch-row input[type=time]{
+    width:100%; display:block;
+  }
+  .btn-now{
+    width:100%; display:block; background:var(--steel); color:#fff; border:none;
+    border-radius:3px; padding:13px 12px; font-size:14px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.3px; cursor:pointer;
+    -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+    text-align:center;
+  }
+  .btn-now:active{ background:#111a22; }
+  /* Desktop: data e hora lado a lado, botão abaixo */
+  @media(min-width:480px){
+    .punch-row{ flex-direction:row; flex-wrap:wrap; align-items:flex-end; }
+    .punch-row input[type=date]{ flex:1.5; width:auto; }
+    .punch-row input[type=time]{ flex:1; width:auto; min-width:100px; }
+    .btn-now{ flex:0 0 auto; width:auto; padding:9px 14px; font-size:13px; }
+  }
+  .day-card{
+    border:2px solid var(--line); border-radius:6px; padding:16px; margin-top:16px;
+    background:#ffffff; display:block; width:100%; box-sizing:border-box;
+  }
+  .pt-block{ margin-bottom:16px; }
+  .pt-lbl{
+    display:block; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.4px; color:var(--steel-light); margin-bottom:6px;
+  }
+  .day-label{
+    font-family:var(--display); font-weight:800; font-size:13px; color:#fff;
+    background:var(--steel); display:inline-block; padding:3px 12px; border-radius:3px;
+    margin-bottom:12px; text-transform:uppercase; letter-spacing:.4px;
+  }
+  .day-sep{border:none; border-top:1px dashed var(--line); margin:18px 0 0;}
+  .multiday-toggle{
+    display:flex; align-items:center; gap:14px; padding:10px 14px; background:#f0f5ff;
+    border:1px solid #c3d3f0; border-radius:4px; margin-bottom:14px;
+  }
+  .multiday-toggle label{
+    margin:0; font-size:13px; font-weight:600; text-transform:none; letter-spacing:0;
+    color:var(--ink); display:flex; align-items:center; gap:6px; cursor:pointer;
+  }
+  .multiday-toggle input[type=checkbox]{width:18px;height:18px;cursor:pointer;accent-color:var(--red);}
+  .numdays-wrap{display:flex;align-items:center;gap:10px;margin-left:auto;}
+  .numdays-wrap input{width:70px;padding:7px 8px;font-size:14px;}
+  .numdays-wrap span{font-size:13px;color:var(--steel-light);white-space:nowrap;}
+  .time-summary{
+    display:flex; gap:14px; margin-top:18px; flex-wrap:wrap;
+  }
+  .ts-item{
+    flex:1; min-width:160px; background:#fbf8f1; border:1px solid var(--line); border-radius:4px;
+    padding:10px 14px;
+  }
+  .ts-label{
+    display:block; font-size:11px; text-transform:uppercase; letter-spacing:.4px;
+    color:var(--steel-light); font-weight:700; margin-bottom:4px;
+  }
+  .ts-value{
+    font-family:var(--mono); font-size:18px; font-weight:700; color:var(--steel);
+  }
+  .total-bar{
+    background:var(--steel); color:#fff; border-radius:4px; padding:14px 18px;
+    margin-top:18px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+  }
+  .total-bar .tb-label{
+    font-size:12px; text-transform:uppercase; letter-spacing:.4px; color:#c9d2da;
+    font-weight:700; display:block; margin-bottom:2px;
+  }
+  .total-bar .tb-value{
+    font-family:var(--mono); font-size:22px; font-weight:800; color:#fff;
+  }
+  .total-bar .tb-item{ flex:1; min-width:130px; }
+  .total-bar .tb-sep{ width:1px; height:40px; background:rgba(255,255,255,.2); }
+  .btn-calc{
+    background:var(--red); color:#fff; border:none; border-radius:3px;
+    padding:10px 18px; font-size:13px; font-weight:800; text-transform:uppercase;
+    letter-spacing:.4px; cursor:pointer; font-family:var(--display); flex:0 0 auto;
+    margin-left:auto;
+  }
+  .btn-calc:active{ background:var(--red-dark); }
+  /* ---- contrato de empréstimo ---- */
+  .emp-title{
+    font-family:var(--display); font-weight:800; font-size:12px; text-transform:uppercase;
+    letter-spacing:.5px; color:#fff; background:var(--red); display:inline-block;
+    padding:4px 12px; border-radius:3px; margin-bottom:14px;
+  }
+  .emp-subtitle{
+    font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.4px;
+    color:var(--steel); border-bottom:2px solid var(--line); padding-bottom:6px;
+    margin:18px 0 10px;
+  }
+  .emp-produto-row{
+    display:grid; grid-template-columns:1fr 2fr 1.2fr 0.5fr 1fr 1.2fr 1.2fr 1fr auto;
+    gap:8px; align-items:end; padding:10px; background:#fafaf8; border:1px solid var(--line);
+    border-radius:4px; margin-bottom:8px;
+  }
+  @media(max-width:640px){
+    .emp-produto-row{ grid-template-columns:1fr 1fr; }
+  }
+  .emp-produto-row .field{ margin:0; }
+  .emp-rm-btn{
+    background:none; border:1px solid #e0b0b0; color:#c8102e; border-radius:3px;
+    width:32px; height:32px; cursor:pointer; font-size:16px; font-weight:800;
+    display:flex; align-items:center; justify-content:center; align-self:end;
+    margin-bottom:0;
+  }
+  .btn-add-prod{
+    background:#fff; border:2px dashed var(--line); color:var(--steel); border-radius:4px;
+    padding:9px 16px; font-size:13px; font-weight:700; cursor:pointer; width:100%;
+    text-align:center; margin-top:4px;
+  }
+  .btn-add-prod:hover{ border-color:var(--steel); }
+  .btn-contrato{
+    background:#1c4a78; color:#fff; font-family:var(--display); font-weight:700;
+    text-transform:uppercase; letter-spacing:.4px; font-size:13px; padding:12px 22px;
+    border-radius:3px; border:none; cursor:pointer;
+  }
+  .btn-contrato:hover{ background:#153a60; }
+  .toast{
+    position:fixed; top:18px; left:50%; transform:translateX(-50%) translateY(-20px);
+    background:var(--steel); color:#fff; padding:10px 18px; border-radius:4px; font-size:13px;
+    opacity:0; pointer-events:none; transition:.25s; z-index:100; box-shadow:0 6px 18px rgba(0,0,0,.3);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  .logo-wrap{ display:flex; align-items:center; gap:12px; }
+  .logo-diamond{ width:44px; height:40px; }
+  .logo-text{
+    color:#fff; font-family:var(--display); font-weight:900; line-height:1; font-size:17px;
+    letter-spacing:-0.4px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-wrap">
+    <svg class="logo-diamond" viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg">
+      <path d="M50,10 L65,35 L50,60 L35,35 Z" fill="#fff" />
+      <path d="M50,60 L35,85 L20,60 L35,35 Z" fill="#fff" />
+      <path d="M50,60 L65,35 L80,60 L65,85 Z" fill="#fff" />
+    </svg>
+    <div class="logo-text">MITSUBISHI<br>ELECTRIC</div>
+  </div>
+  <div class="logo-sep"></div>
+  <div>
+    <h1>Relatório de Assistência Técnica</h1>
+    <div class="sub">Preenchimento offline · CNC / Automação Industrial</div>
+  </div>
+  <div class="right"><span class="status-dot" id="statusDot"></span><span id="statusText">Rascunho carregado</span></div>
+</div>
+
+<main>
+
+  <!-- 1. MARCAÇÃO DE PONTO -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">1</div><h2>Marcação de ponto</h2></div>
+    <div class="section-body">
+      <div class="multiday-toggle">
+        <label><input type="checkbox" id="chkMultiDay" onchange="toggleMultiDay()"> Atendimento com mais de 1 dia</label>
+        <div class="numdays-wrap" id="numDiasWrap" style="display:none;">
+          <input type="number" id="numDias" min="2" max="30" value="2" oninput="onNumDiasChange()">
+          <span>dias</span>
+        </div>
+      </div>
+      <div id="daysContainer">
+        <!-- DIA 1 — sempre estático, sem depender de JavaScript para renderizar -->
+        <div class="day-card" id="dayCard0">
+          <div class="day-label" id="dayCard0Label" style="display:none;">Dia 1</div>
+
+          <div class="pt-block">
+            <label class="pt-lbl">Check-in — início do atendimento</label>
+            <div class="punch-row">
+              <input type="date"  id="d0_ciData" onchange="syncDay(0)">
+              <input type="time"  id="d0_ciHora" onchange="syncDay(0)">
+              <button type="button" class="btn-now" onclick="markNowDay(0,'ci')">&#9201; Agora</button>
+            </div>
+          </div>
+
+          <div class="pt-block">
+            <label class="pt-lbl">Check-out — fim do atendimento</label>
+            <div class="punch-row">
+              <input type="date"  id="d0_coData" onchange="syncDay(0)">
+              <input type="time"  id="d0_coHora" onchange="syncDay(0)">
+              <button type="button" class="btn-now" onclick="markNowDay(0,'co')">&#9201; Agora</button>
+            </div>
+          </div>
+
+          <div class="pt-block">
+            <label class="pt-lbl">Início da pausa</label>
+            <div class="punch-row">
+              <input type="date"  id="d0_ipData" onchange="syncDay(0)">
+              <input type="time"  id="d0_ipHora" onchange="syncDay(0)">
+              <button type="button" class="btn-now" onclick="markNowDay(0,'ip')">&#9201; Agora</button>
+            </div>
+          </div>
+
+          <div class="pt-block">
+            <label class="pt-lbl">Fim da pausa</label>
+            <div class="punch-row">
+              <input type="date"  id="d0_fpData" onchange="syncDay(0)">
+              <input type="time"  id="d0_fpHora" onchange="syncDay(0)">
+              <button type="button" class="btn-now" onclick="markNowDay(0,'fp')">&#9201; Agora</button>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;">
+            <div class="field" style="flex:1;min-width:140px;">
+              <label>Motivo da pausa</label>
+              <select id="d0_motivo" onchange="syncDay(0)">
+                <option>Almoço</option><option>Deslocamento</option><option>Outro</option>
+              </select>
+            </div>
+            <div class="field" style="flex:1;min-width:140px;">
+              <label>Justificativa (atraso)</label>
+              <input type="text" id="d0_just" oninput="syncDay(0)" placeholder="opcional">
+            </div>
+          </div>
+
+          <div class="time-summary" style="margin-top:14px;">
+            <div class="ts-item"><span class="ts-label">Tempo em pausa</span><span class="ts-value" id="d0_tsPausa">00:00</span></div>
+            <div class="ts-item"><span class="ts-label">Tempo no atendimento</span><span class="ts-value" id="d0_tsTotal">00:00</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+      <div class="total-bar" id="totalBar">
+        <div class="tb-item">
+          <span class="tb-label">Total em pausa (todos os dias)</span>
+          <span class="tb-value" id="grandPausa">00:00</span>
+        </div>
+        <div class="tb-sep"></div>
+        <div class="tb-item">
+          <span class="tb-label">Total no atendimento (todos os dias)</span>
+          <span class="tb-value" id="grandTotal">00:00</span>
+        </div>
+        <button type="button" class="btn-calc" onclick="calcAll()">⏱ Calcular total</button>
+      </div>
+    <div class="hint-block">ℹ️ Preencha manualmente ou toque em "Agora" no momento exato — pode ser feito a qualquer hora, mesmo após o atendimento.</div>
+  </section>
+
+  <!-- 2. DADOS DO ATENDIMENTO -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">2</div><h2>Dados do atendimento</h2></div>
+    <div class="section-body">
+      <div class="grid cols-3">
+        <div class="field field-mono"><label>Nº da tarefa / OS</label><input type="text" id="numOS" placeholder="ex: 75553269"></div>
+        <div class="field"><label>Data do atendimento</label><input type="date" id="dataAtendimento"></div>
+        <div class="field"><label>Prioridade</label>
+          <select id="prioridade">
+            <option>Baixa</option><option>Média</option><option selected>Alta</option><option>Urgente</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid cols-2" style="margin-top:14px;">
+        <div class="field"><label>Técnico responsável <span class="req">*</span></label><input type="text" id="tecnico" placeholder="Nome do técnico"></div>
+        <div class="field"><label>Tipo de tarefa</label><input type="text" id="tipoTarefa" value="Assistência Técnica"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. DADOS DO CLIENTE -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">3</div><h2>Dados do cliente</h2></div>
+    <div class="section-body">
+      <div class="field"><label>Empresa <span class="req">*</span></label><input type="text" id="empresa" placeholder="Razão social"></div>
+      <div class="field" style="margin-top:14px;"><label>Endereço</label><input type="text" id="endereco" placeholder="Endereço completo do atendimento"></div>
+      <div class="grid cols-3" style="margin-top:14px;">
+        <div class="field"><label>Nome do contato <span class="req">*</span></label><input type="text" id="contatoNome"></div>
+        <div class="field"><label>E-mail</label><input type="email" id="contatoEmail"></div>
+        <div class="field"><label>Telefone</label><input type="tel" id="contatoTelefone"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. DADOS DA MÁQUINA -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">4</div><h2>Dados da máquina</h2></div>
+    <div class="section-body">
+      <div class="grid cols-2">
+        <div class="field"><label>Fabricante da máquina</label><input type="text" id="fabricanteMaquina"></div>
+        <div class="field"><label>Modelo da máquina</label><input type="text" id="modeloMaquina"></div>
+        <div class="field field-mono"><label>Nº de série (máquina)</label><input type="text" id="serieMaquina"></div>
+        <div class="field"><label>Modelo do CNC</label><input type="text" id="modeloCNC"></div>
+        <div class="field field-mono"><label>Nº de série (CNC)</label><input type="text" id="serieCNC"></div>
+      </div>
+      <div class="grid cols-2" style="margin-top:14px;">
+        <div class="field">
+          <label>Máquina estava parada?</label>
+          <div class="radio-row">
+            <label class="radio-opt"><input type="radio" name="maquinaParada" value="Sim"> Sim</label>
+            <label class="radio-opt"><input type="radio" name="maquinaParada" value="Não"> Não</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Máquina em garantia?</label>
+          <div class="radio-row">
+            <label class="radio-opt"><input type="radio" name="maquinaGarantia" value="Sim"> Sim</label>
+            <label class="radio-opt"><input type="radio" name="maquinaGarantia" value="Não"> Não</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. DIAGNÓSTICO -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">5</div><h2>Diagnóstico</h2></div>
+    <div class="section-body">
+      <div class="field"><label>Defeito constatado / Problema relatado</label><textarea id="problema" placeholder="Descreva o problema relatado pelo cliente e/ou constatado em campo"></textarea></div>
+      <div class="field" style="margin-top:14px;"><label>Causa</label><textarea id="causa" placeholder="Causa raiz identificada"></textarea></div>
+      <div class="field" style="margin-top:14px;"><label>Solução aplicada</label><textarea id="solucao" placeholder="Descreva o que foi feito para resolver o problema"></textarea></div>
+    </div>
+  </section>
+
+  <!-- 6. EQUIPAMENTOS INSTALADOS -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">6</div><h2>Equipamentos instalados</h2></div>
+    <div class="section-body">
+      <label>Foi instalado algum equipamento?</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="equipInstalado" value="Sim" onchange="toggleBlock('blockInstalado',true)"> Sim</label>
+        <label class="radio-opt"><input type="radio" name="equipInstalado" value="Não" onchange="toggleBlock('blockInstalado',false)"> Não</label>
+      </div>
+      <div class="toggle-block" id="blockInstalado">
+        <div class="field"><label>Descrição dos equipamentos instalados</label><textarea id="descInstalado" placeholder="Ex: PD27 / nº série / empréstimo"></textarea></div>
+        <div class="field" style="margin-top:14px;">
+          <label>Fotos do equipamento instalado</label>
+          <input type="file" id="fotosInstalado" class="photo-input" accept="image/*" multiple onchange="handlePhotos(this,'thumbsInstalado','imgsInstalado')">
+          <button type="button" class="photo-btn" onclick="document.getElementById('fotosInstalado').click()">
+            📷 Adicionar fotos <span class="photo-count" id="cntInstalado">0</span>
+          </button>
+          <div class="thumbs" id="thumbsInstalado"></div>
+        </div>
+
+        <!-- EMPRÉSTIMO / DEMONSTRAÇÃO -->
+        <div class="field" style="margin-top:18px; padding-top:14px; border-top:2px solid var(--line);">
+          <label>Este equipamento é em empréstimo / demonstração?</label>
+          <div class="radio-row">
+            <label class="radio-opt"><input type="radio" name="emprestimo" value="Sim" onchange="toggleEmprestimo(true)"> Sim — gerar contrato</label>
+            <label class="radio-opt"><input type="radio" name="emprestimo" value="Não" onchange="toggleEmprestimo(false)"> Não</label>
+          </div>
+        </div>
+
+        <div class="toggle-block" id="empBlock">
+          <div class="emp-title">📋 Contrato de Empréstimo / Demonstração — MEB</div>
+
+          <div class="emp-subtitle">Dados do cliente (empresa)</div>
+          <div class="grid cols-3">
+            <div class="field"><label>CNPJ <span class="req">*</span></label><input type="text" id="empCNPJ" placeholder="00.000.000/0000-00"></div>
+            <div class="field"><label>Cidade <span class="req">*</span></label><input type="text" id="empCidade"></div>
+            <div class="field"><label>Estado (UF)</label><input type="text" id="empEstado" maxlength="2" placeholder="SP"></div>
+            <div class="field"><label>CEP</label><input type="text" id="empCEP" placeholder="00000-000"></div>
+            <div class="field" style="grid-column:span 2"><label>Endereço completo (rua, nº, bairro)</label><input type="text" id="empEndereco"></div>
+          </div>
+
+          <div class="emp-subtitle">Representante legal do cliente</div>
+          <div class="grid cols-3">
+            <div class="field" style="grid-column:span 2"><label>Nome do representante <span class="req">*</span></label><input type="text" id="empRepNome"></div>
+            <div class="field"><label>Cidadania</label><input type="text" id="empRepCidadania" placeholder="brasileiro(a)"></div>
+            <div class="field"><label>Estado civil</label><input type="text" id="empRepEstCivil" placeholder="solteiro(a)"></div>
+            <div class="field"><label>Profissão</label><input type="text" id="empRepProfissao"></div>
+            <div class="field"><label>CPF do representante</label><input type="text" id="empRepCPF" placeholder="000.000.000-00"></div>
+            <div class="field"><label>RG do representante</label><input type="text" id="empRepRG"></div>
+          </div>
+
+          <div class="emp-subtitle">Tabela A — Produto(s) em empréstimo</div>
+          <div id="empProdutosWrap"></div>
+          <button type="button" class="btn-add-prod" onclick="addEmpProduto()">+ Adicionar linha de produto</button>
+
+          <div class="emp-subtitle">Data e assinatura do contrato</div>
+          <div class="grid cols-2">
+            <div class="field"><label>Data do contrato</label><input type="date" id="empDataContrato"></div>
+            <div class="field"><label>Local (cidade)</label><input type="text" id="empLocalContrato" placeholder="São Paulo"></div>
+          </div>
+          <div class="grid cols-2" style="margin-top:12px;">
+            <div class="field"><label>Nome do signatário (cliente)</label><input type="text" id="empClienteNome"></div>
+            <div class="field"><label>CPF do signatário</label><input type="text" id="empClienteCPF" placeholder="000.000.000-00"></div>
+          </div>
+          <div class="emp-subtitle">Testemunhas</div>
+          <div class="grid cols-2">
+            <div class="field"><label>Testemunha 1 — Nome</label><input type="text" id="empTest1Nome"></div>
+            <div class="field"><label>Testemunha 1 — CPF</label><input type="text" id="empTest1CPF"></div>
+            <div class="field"><label>Testemunha 2 — Nome</label><input type="text" id="empTest2Nome"></div>
+            <div class="field"><label>Testemunha 2 — CPF</label><input type="text" id="empTest2CPF"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. EQUIPAMENTOS RETIRADOS -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">7</div><h2>Equipamentos retirados</h2></div>
+    <div class="section-body">
+      <label>Foi retirado algum equipamento?</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="equipRetirado" value="Sim" onchange="toggleBlock('blockRetirado',true)"> Sim</label>
+        <label class="radio-opt"><input type="radio" name="equipRetirado" value="Não" onchange="toggleBlock('blockRetirado',false)"> Não</label>
+      </div>
+      <div class="toggle-block" id="blockRetirado">
+        <div class="field"><label>Descrição dos equipamentos retirados</label><textarea id="descRetirado" placeholder="Ex: FCU7-YZ141 / nº série / reparo"></textarea></div>
+        <div class="field" style="margin-top:14px;"><label>Condição do equipamento retirado</label><input type="text" id="condicaoRetirado" placeholder="Ex: queimado, com defeito, para reparo"></div>
+        <div class="field" style="margin-top:14px;">
+          <label>Fotos do equipamento retirado</label>
+          <input type="file" id="fotosRetirado" class="photo-input" accept="image/*" multiple onchange="handlePhotos(this,'thumbsRetirado','imgsRetirado')">
+          <button type="button" class="photo-btn" onclick="document.getElementById('fotosRetirado').click()">
+            📷 Adicionar fotos <span class="photo-count" id="cntRetirado">0</span>
+          </button>
+          <div class="thumbs" id="thumbsRetirado"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. FOTOS DO RELATÓRIO -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">8</div><h2>Fotos gerais do relatório</h2></div>
+    <div class="section-body">
+      <input type="file" id="fotosRelatorio" class="photo-input" accept="image/*" multiple onchange="handlePhotos(this,'thumbsRelatorio','imgsRelatorio')">
+      <button type="button" class="photo-btn" onclick="document.getElementById('fotosRelatorio').click()">
+        📷 Adicionar fotos <span class="photo-count" id="cntRelatorio">0</span>
+      </button>
+      <div class="thumbs" id="thumbsRelatorio"></div>
+    </div>
+  </section>
+
+  <!-- 9. INFORMAÇÕES PARA O LABORATÓRIO -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">9</div><h2>Informações para o Laboratório</h2></div>
+    <div class="section-body">
+      <div class="field"><textarea id="labInfo" placeholder="Descreva informações relevantes para o laboratório (falhas encontradas, peças a reparar, observações técnicas, etc.)" style="min-height:110px;"></textarea></div>
+    </div>
+  </section>
+
+  <!-- 10. ASSINATURA -->
+  <section class="section">
+    <div class="section-head"><div class="section-num">10</div><h2>Assinatura do cliente</h2></div>
+    <div class="section-body">
+      <div class="grid cols-2">
+        <div class="field"><label>Nome do signatário</label><input type="text" id="assinaturaNome"></div>
+        <div class="field"><label>CPF / Documento</label><input type="text" id="assinaturaDocumento"></div>
+      </div>
+      <div class="field" style="margin-top:14px;">
+        <label>Assine no campo abaixo</label>
+        <div class="sig-wrap"><canvas id="sigCanvas"></canvas></div>
+        <div class="sig-actions">
+          <button class="link-btn" onclick="clearSignature()">Limpar assinatura</button>
+          <span class="hint" style="margin:0;">Use o dedo ou o mouse</span>
+        </div>
+      </div>
+    </div>
+    <div class="hint-block">ℹ️ Tudo é salvo automaticamente no seu navegador (rascunho local). Nada é enviado para a internet.</div>
+  </section>
+
+</main>
+
+<div class="footbar">
+  <button class="btn btn-ghost" onclick="clearForm()">Limpar formulário</button>
+  <button class="btn-contrato" onclick="openContrato()">📋 Gerar contrato</button>
+  <button class="btn btn-primary" onclick="openReport()">📄 Gerar relatório</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- estado de fotos em memória ---------------- */
+const photoState = { imgsInstalado: [], imgsRetirado: [], imgsRelatorio: [] };
+
+const PHOTO_CNT = {
+  imgsInstalado:'cntInstalado', imgsRetirado:'cntRetirado', imgsRelatorio:'cntRelatorio'
+};
+function updatePhotoCount(stateKey){
+  const cntId = PHOTO_CNT[stateKey];
+  if(!cntId) return;
+  const el = document.getElementById(cntId);
+  if(el) el.textContent = photoState[stateKey].length;
+}
+
+function handlePhotos(inputEl, thumbsId, stateKey){
+  const files = Array.from(inputEl.files || []);
+  if(!files.length) return;
+  let loaded = 0;
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      photoState[stateKey].push(e.target.result);
+      loaded++;
+      if(loaded === files.length){
+        renderThumbs(thumbsId, stateKey);
+        updatePhotoCount(stateKey);
+        saveDraft();
+        showToast(loaded + ' foto(s) adicionada(s)');
+      }
+    };
+    reader.readAsDataURL(file);
+  });
+  inputEl.value = '';
+}
+
+function renderThumbs(thumbsId, stateKey){
+  const wrap = document.getElementById(thumbsId);
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  photoState[stateKey].forEach((src, idx) => {
+    const div = document.createElement('div');
+    div.className = 'thumb';
+    div.innerHTML = '<img src="'+src+'"><button class="rm" onclick="removePhoto(\''+stateKey+'\','+idx+',\''+thumbsId+'\')">×</button>';
+    wrap.appendChild(div);
+  });
+  updatePhotoCount(stateKey);
+}
+
+function removePhoto(stateKey, idx, thumbsId){
+  photoState[stateKey].splice(idx,1);
+  renderThumbs(thumbsId, stateKey);
+  saveDraft();
+}
+
+/* ---------------- marcação de ponto (multi-dia) ---------------- */
+function pad(n){ return n.toString().padStart(2,'0'); }
+function fmtDuration(ms){
+  if(ms < 0 || isNaN(ms)) return '00:00';
+  const totalMin = Math.round(ms / 60000);
+  const h = Math.floor(totalMin / 60), m = totalMin % 60;
+  return pad(h)+':'+pad(m);
+}
+function combineDT(d, t){
+  if(!d || !t) return null;
+  const dt = new Date(d+'T'+t);
+  return isNaN(dt) ? null : dt;
+}
+function localNow(){
+  const d = new Date();
+  return {
+    date: d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()),
+    time: pad(d.getHours())+':'+pad(d.getMinutes())
+  };
+}
+
+/* dayTimes state: array of day objects */
+let dayTimes = [emptyDay()];
+let isMultiDay = false;
+function emptyDay(){
+  return {ciData:'',ciHora:'',coData:'',coHora:'',ipData:'',ipHora:'',fpData:'',fpHora:'',motivo:'Almoço',just:''};
+}
+
+function toggleMultiDay(){
+  isMultiDay = document.getElementById('chkMultiDay').checked;
+  document.getElementById('numDiasWrap').style.display = isMultiDay ? 'flex' : 'none';
+  if(isMultiDay){
+    const n = parseInt(document.getElementById('numDias').value)||2;
+    adjustDays(n);
+  } else {
+    adjustDays(1);
+  }
+  saveDraft();
+}
+
+function onNumDiasChange(){
+  const n = Math.max(2, Math.min(30, parseInt(document.getElementById('numDias').value)||2));
+  document.getElementById('numDias').value = n;
+  adjustDays(n);
+  saveDraft();
+}
+
+function adjustDays(n){
+  while(dayTimes.length < n) dayTimes.push(emptyDay());
+  if(dayTimes.length > n) dayTimes.length = n;
+  renderDays();
+}
+
+function markNowDay(i, field){
+  const now = localNow();
+  const map = {ci:['ciData','ciHora'], co:['coData','coHora'], ip:['ipData','ipHora'], fp:['fpData','fpHora']};
+  const [dk, tk] = map[field];
+  dayTimes[i][dk] = now.date;
+  dayTimes[i][tk] = now.time;
+  const de = document.getElementById('d'+i+'_'+dk);
+  const te = document.getElementById('d'+i+'_'+tk);
+  if(de) de.value = now.date;
+  if(te) te.value = now.time;
+  calcDayTime(i);
+  saveDraft();
+}
+
+function syncDay(i){
+  const d = dayTimes[i];
+  const g = (k) => { const el=document.getElementById('d'+i+'_'+k); return el ? el.value : ''; };
+  d.ciData=g('ciData'); d.ciHora=g('ciHora');
+  d.coData=g('coData'); d.coHora=g('coHora');
+  d.ipData=g('ipData'); d.ipHora=g('ipHora');
+  d.fpData=g('fpData'); d.fpHora=g('fpHora');
+  d.motivo=g('motivo'); d.just=g('just');
+  calcDayTime(i);
+  saveDraft();
+}
+
+function calcDayTime(i){
+  const d = dayTimes[i];
+  const ci = combineDT(d.ciData, d.ciHora);
+  const co = combineDT(d.coData, d.coHora);
+  const ip = combineDT(d.ipData, d.ipHora);
+  const fp = combineDT(d.fpData, d.fpHora);
+  let pausaMs = (ip&&fp) ? Math.max(0, fp-ip) : 0;
+  let totalMs = (ci&&co) ? Math.max(0, (co-ci)-pausaMs) : 0;
+  const pEl = document.getElementById('d'+i+'_tsPausa');
+  const tEl = document.getElementById('d'+i+'_tsTotal');
+  if(pEl) pEl.textContent = fmtDuration(pausaMs);
+  if(tEl) tEl.textContent = fmtDuration(totalMs);
+  updateGrandTotal();
+}
+
+/* Cria um campo de data+hora+botão Agora via createElement (sem innerHTML) */
+function makePunchBlock(i, fieldKey, labelText, d){
+  var dataKey = fieldKey + 'Data';
+  var horaKey = fieldKey + 'Hora';
+
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-bottom:16px;';
+
+  var lbl = document.createElement('label');
+  lbl.style.cssText = 'display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:#5b6b7a;margin-bottom:6px;';
+  lbl.textContent = labelText;
+  wrap.appendChild(lbl);
+
+  var row = document.createElement('div');
+  row.className = 'punch-row';
+  wrap.appendChild(row);
+
+  var dateEl = document.createElement('input');
+  dateEl.type = 'date';
+  dateEl.id = 'd' + i + '_' + dataKey;
+  dateEl.value = d[dataKey] || '';
+  dateEl.style.cssText = 'display:block;width:100%;min-height:44px;';
+  dateEl.addEventListener('change', function(){ syncDay(i); });
+  row.appendChild(dateEl);
+
+  var timeEl = document.createElement('input');
+  timeEl.type = 'time';
+  timeEl.id = 'd' + i + '_' + horaKey;
+  timeEl.value = d[horaKey] || '';
+  timeEl.style.cssText = 'display:block;width:100%;min-height:44px;';
+  timeEl.addEventListener('change', function(){ syncDay(i); });
+  row.appendChild(timeEl);
+
+  var btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn-now';
+  btn.textContent = '\u23F1 Agora';
+  (function(idx, fk){ btn.addEventListener('click', function(){ markNowDay(idx, fk); }); })(i, fieldKey);
+  row.appendChild(btn);
+
+  return wrap;
+}
+
+function makeDayCard(i){
+  var d = dayTimes[i];
+
+  var card = document.createElement('div');
+  card.className = 'day-card';
+  card.id = 'dayCard' + i;
+
+  if(isMultiDay){
+    var lbl = document.createElement('div');
+    lbl.className = 'day-label';
+    lbl.textContent = 'Dia ' + (i + 1);
+    card.appendChild(lbl);
+  }
+
+  card.appendChild(makePunchBlock(i, 'ci', 'Check-in — início do atendimento', d));
+  card.appendChild(makePunchBlock(i, 'co', 'Check-out — fim do atendimento', d));
+  card.appendChild(makePunchBlock(i, 'ip', 'Início da pausa', d));
+  card.appendChild(makePunchBlock(i, 'fp', 'Fim da pausa', d));
+
+  /* linha motivo + justificativa */
+  var botRow = document.createElement('div');
+  botRow.style.cssText = 'display:flex;gap:10px;margin-top:6px;flex-wrap:wrap;';
+
+  var motField = document.createElement('div');
+  motField.className = 'field';
+  motField.style.flex = '1';
+  var motLbl = document.createElement('label');
+  motLbl.textContent = 'Motivo da pausa';
+  var motSel = document.createElement('select');
+  motSel.id = 'd' + i + '_motivo';
+  ['Almoço','Deslocamento','Outro'].forEach(function(opt){
+    var o = document.createElement('option');
+    o.value = opt; o.textContent = opt;
+    if((d.motivo || 'Almoço') === opt) o.selected = true;
+    motSel.appendChild(o);
+  });
+  (function(idx){ motSel.addEventListener('change', function(){ syncDay(idx); }); })(i);
+  motField.appendChild(motLbl);
+  motField.appendChild(motSel);
+  botRow.appendChild(motField);
+
+  var justField = document.createElement('div');
+  justField.className = 'field';
+  justField.style.flex = '1';
+  var justLbl = document.createElement('label');
+  justLbl.textContent = 'Justificativa (atraso)';
+  var justIn = document.createElement('input');
+  justIn.type = 'text';
+  justIn.id = 'd' + i + '_just';
+  justIn.value = d.just || '';
+  justIn.placeholder = 'opcional';
+  (function(idx){ justIn.addEventListener('input', function(){ syncDay(idx); }); })(i);
+  justField.appendChild(justLbl);
+  justField.appendChild(justIn);
+  botRow.appendChild(justField);
+
+  card.appendChild(botRow);
+
+  /* resumo horas */
+  var summ = document.createElement('div');
+  summ.className = 'time-summary';
+  summ.style.marginTop = '14px';
+  var p1 = document.createElement('div'); p1.className = 'ts-item';
+  p1.innerHTML = '<span class="ts-label">Tempo em pausa</span><span class="ts-value" id="d'+i+'_tsPausa">00:00</span>';
+  var p2 = document.createElement('div'); p2.className = 'ts-item';
+  p2.innerHTML = '<span class="ts-label">Tempo no atendimento</span><span class="ts-value" id="d'+i+'_tsTotal">00:00</span>';
+  summ.appendChild(p1); summ.appendChild(p2);
+  card.appendChild(summ);
+
+  return card;
+}
+
+function restoreDay0(){
+  var d = dayTimes[0] || emptyDay();
+  var pairs = {
+    d0_ciData: d.ciData,   d0_ciHora: d.ciHora,
+    d0_coData: d.coData,   d0_coHora: d.coHora,
+    d0_ipData: d.ipData,   d0_ipHora: d.ipHora,
+    d0_fpData: d.fpData,   d0_fpHora: d.fpHora,
+    d0_motivo: d.motivo || 'Almoço',
+    d0_just:   d.just   || ''
+  };
+  Object.keys(pairs).forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.value = pairs[id];
+  });
+  // label "Dia 1" só aparece em modo multi-dia
+  var lbl = document.getElementById('dayCard0Label');
+  if(lbl) lbl.style.display = isMultiDay ? 'inline-block' : 'none';
+}
+
+function renderDays(){
+  // Dia 0 é estático — só restaura valores
+  restoreDay0();
+
+  // Remove cards dinâmicos anteriores (dias 1+)
+  var container = document.getElementById('daysContainer');
+  if(!container) return;
+  for(var i = 1; i <= 30; i++){
+    var old = document.getElementById('dayCard' + i);
+    if(old) old.parentNode.removeChild(old);
+  }
+
+  // Cria cards para os dias extras (1 em diante)
+  if(isMultiDay){
+    for(var j = 1; j < dayTimes.length; j++){
+      container.appendChild(makeDayCard(j));
+    }
+  }
+
+  // Calcula horas de todos os dias
+  for(var k = 0; k < dayTimes.length; k++){
+    calcDayTime(k);
+  }
+}
+
+function calcTimes(){ dayTimes.forEach((_,i)=>calcDayTime(i)); updateGrandTotal(); }
+
+function calcAll(){
+  calcTimes();
+  showToast('Horas calculadas!');
+}
+
+function updateGrandTotal(){
+  let totalPausaMs = 0, totalAtendMs = 0;
+  dayTimes.forEach((d, i) => {
+    const ci = combineDT(d.ciData, d.ciHora);
+    const co = combineDT(d.coData, d.coHora);
+    const ip = combineDT(d.ipData, d.ipHora);
+    const fp = combineDT(d.fpData, d.fpHora);
+    const pausaMs = (ip&&fp) ? Math.max(0, fp-ip) : 0;
+    const atendMs = (ci&&co) ? Math.max(0, (co-ci)-pausaMs) : 0;
+    totalPausaMs += pausaMs;
+    totalAtendMs += atendMs;
+  });
+  const gp = document.getElementById('grandPausa');
+  const gt = document.getElementById('grandTotal');
+  if(gp) gp.textContent = fmtDuration(totalPausaMs);
+  if(gt) gt.textContent = fmtDuration(totalAtendMs);
+}
+
+/* ---------------- toggle de blocos sim/não ---------------- */
+function toggleBlock(id, show){
+  const el = document.getElementById(id);
+  el.classList.toggle('show', show);
+}
+
+/* ---------------- assinatura (canvas) ---------------- */
+let sigCanvas, sigCtx, drawing = false, sigHasContent = false;
+
+function setupCanvas(){
+  sigCanvas = document.getElementById('sigCanvas');
+  const ratio = window.devicePixelRatio || 1;
+  const rect = sigCanvas.getBoundingClientRect();
+  sigCanvas.width = rect.width * ratio;
+  sigCanvas.height = rect.height * ratio;
+  sigCtx = sigCanvas.getContext('2d');
+  sigCtx.scale(ratio, ratio);
+  sigCtx.lineWidth = 2;
+  sigCtx.lineCap = 'round';
+  sigCtx.strokeStyle = '#1b1f24';
+
+  const pos = e => {
+    const r = sigCanvas.getBoundingClientRect();
+    const t = e.touches ? e.touches[0] : e;
+    return { x: t.clientX - r.left, y: t.clientY - r.top };
+  };
+  const start = e => { drawing = true; sigHasContent = true; const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x,p.y); e.preventDefault(); };
+  const move = e => { if(!drawing) return; const p = pos(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); e.preventDefault(); };
+  const end = () => { if(drawing){ drawing = false; saveDraft(); } };
+
+  sigCanvas.addEventListener('mousedown', start);
+  sigCanvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  sigCanvas.addEventListener('touchstart', start, {passive:false});
+  sigCanvas.addEventListener('touchmove', move, {passive:false});
+  sigCanvas.addEventListener('touchend', end);
+}
+
+function clearSignature(){
+  const rect = sigCanvas.getBoundingClientRect();
+  sigCtx.clearRect(0,0,rect.width,rect.height);
+  sigHasContent = false;
+  saveDraft();
+}
+
+/* ---------------- rascunho local (localStorage) ---------------- */
+const FIELD_IDS = ['numOS','dataAtendimento','prioridade','tecnico','tipoTarefa',
+  'empresa','endereco','contatoNome','contatoEmail','contatoTelefone',
+  'fabricanteMaquina','modeloMaquina','serieMaquina','modeloCNC','serieCNC',
+  'problema','causa','solucao','descInstalado','descRetirado','condicaoRetirado',
+  'labInfo','assinaturaNome','assinaturaDocumento',
+  'empCNPJ','empCidade','empEstado','empCEP','empEndereco',
+  'empRepNome','empRepCidadania','empRepEstCivil','empRepProfissao','empRepCPF','empRepRG',
+  'empDataContrato','empLocalContrato','empClienteNome','empClienteCPF',
+  'empTest1Nome','empTest1CPF','empTest2Nome','empTest2CPF'];
+
+let saveTimer;
+function saveDraft(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    const data = {};
+    FIELD_IDS.forEach(id => { const el = document.getElementById(id); if(el) data[id] = el.value; });
+    data.maquinaParada = getRadio('maquinaParada');
+    data.maquinaGarantia = getRadio('maquinaGarantia');
+    data.equipInstalado = getRadio('equipInstalado');
+    data.equipRetirado = getRadio('equipRetirado');
+    data.photos = photoState;
+    data.signature = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
+    data.dayTimes = dayTimes;
+    data.isMultiDay = isMultiDay;
+    data.numDias = isMultiDay ? (parseInt(document.getElementById('numDias').value)||2) : 1;
+    data.emprestimo = getRadio('emprestimo');
+    data.empProdutos = empProdutos;
+    try { localStorage.setItem('rat_draft_v2', JSON.stringify(data)); } catch(e){}
+    setStatus('Rascunho salvo automaticamente', true);
+  }, 400);
+}
+
+function getRadio(name){
+  const el = document.querySelector('input[name="'+name+'"]:checked');
+  return el ? el.value : '';
+}
+function setRadio(name, value){
+  if(!value) return;
+  const el = document.querySelector('input[name="'+name+'"][value="'+value+'"]');
+  if(el) el.checked = true;
+}
+
+function loadDraft(){
+  let raw;
+  try { raw = localStorage.getItem('rat_draft_v2'); } catch(e){ raw = null; }
+  if(!raw){ setStatus('Novo relatório', true); return; }
+  try{
+    const data = JSON.parse(raw);
+    FIELD_IDS.forEach(id => { const el = document.getElementById(id); if(el && data[id] !== undefined) el.value = data[id]; });
+    setRadio('maquinaParada', data.maquinaParada);
+    setRadio('maquinaGarantia', data.maquinaGarantia);
+    setRadio('equipInstalado', data.equipInstalado);
+    setRadio('equipRetirado', data.equipRetirado);
+    toggleBlock('blockInstalado', data.equipInstalado === 'Sim');
+    toggleBlock('blockRetirado', data.equipRetirado === 'Sim');
+    if(data.photos){
+      photoState.imgsInstalado = data.photos.imgsInstalado || [];
+      photoState.imgsRetirado = data.photos.imgsRetirado || [];
+      photoState.imgsRelatorio = data.photos.imgsRelatorio || [];
+      renderThumbs('thumbsInstalado','imgsInstalado');
+      renderThumbs('thumbsRetirado','imgsRetirado');
+      renderThumbs('thumbsRelatorio','imgsRelatorio');
+    }
+    if(data.dayTimes && Array.isArray(data.dayTimes) && data.dayTimes.length){
+      dayTimes = data.dayTimes.map(d => Object.assign(emptyDay(), d));
+    }
+    if(data.isMultiDay){
+      isMultiDay = true;
+      document.getElementById('chkMultiDay').checked = true;
+      document.getElementById('numDiasWrap').style.display = 'flex';
+      if(data.numDias) document.getElementById('numDias').value = data.numDias;
+    }
+    renderDays();
+    if(data.emprestimo){ setRadio('emprestimo', data.emprestimo); toggleEmprestimo(data.emprestimo==='Sim'); }
+    if(data.empProdutos && Array.isArray(data.empProdutos)) empProdutos = data.empProdutos.map(r=>Object.assign(emptyEmpProd(),r));
+    renderEmpProdutos();
+    if(data.signature){
+      const img = new Image();
+      img.onload = () => { sigCtx.drawImage(img,0,0, sigCanvas.getBoundingClientRect().width, sigCanvas.getBoundingClientRect().height); sigHasContent = true; };
+      img.src = data.signature;
+    }
+    setStatus('Rascunho carregado', true);
+  }catch(e){ setStatus('Novo relatório', true); renderDays(); }
+}
+
+function clearForm(){
+  if(!confirm('Tem certeza que deseja limpar todo o formulário? Esta ação não pode ser desfeita.')) return;
+  FIELD_IDS.forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  document.getElementById('tipoTarefa').value = 'Assistência Técnica';
+  document.getElementById('prioridade').value = 'Alta';
+  document.querySelectorAll('input[type=radio]').forEach(r => r.checked = false);
+  toggleBlock('blockInstalado', false);
+  toggleBlock('blockRetirado', false);
+  photoState.imgsInstalado = []; photoState.imgsRetirado = []; photoState.imgsRelatorio = [];
+  renderThumbs('thumbsInstalado','imgsInstalado');
+  renderThumbs('thumbsRetirado','imgsRetirado');
+  renderThumbs('thumbsRelatorio','imgsRelatorio');
+  clearSignature();
+  dayTimes = [emptyDay()];
+  isMultiDay = false;
+  document.getElementById('chkMultiDay').checked = false;
+  document.getElementById('numDiasWrap').style.display = 'none';
+  document.getElementById('numDias').value = 2;
+  renderDays();
+  empProdutos = [emptyEmpProd()];
+  toggleEmprestimo(false);
+  renderEmpProdutos();
+  try{ localStorage.removeItem('rat_draft_v2'); }catch(e){}
+  setStatus('Formulário limpo', true);
+}
+
+function setStatus(msg, ok){
+  document.getElementById('statusText').textContent = msg;
+  document.getElementById('statusDot').style.background = ok ? '#1c7a4d' : '#b9760c';
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+/* ---------------- geração do Word (.doc) ---------------- */
+function esc(s){
+  return (s || '').toString()
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\n/g,'<br>');
+}
+function val(id){ return document.getElementById(id).value || ''; }
+function dateBR(iso){
+  if(!iso) return '—';
+  const [y,m,d] = iso.split('-');
+  return d+'/'+m+'/'+y;
+}
+function fmtDateTime(dateId, timeId){
+  const d = val(dateId), t = val(timeId);
+  if(!d && !t) return '—';
+  return (d ? dateBR(d) : '—') + (t ? ' às '+t : '');
+}
+
+function photoGrid(arr){
+  if(!arr || !arr.length) return '<p style="color:#777;font-size:11pt;">Nenhuma foto anexada.</p>';
+  let html = '<table style="border-collapse:collapse;width:100%;"><tr>';
+  arr.forEach((src, i) => {
+    html += '<td style="padding:4px;text-align:center;"><img src="'+src+'" style="width:200px;height:auto;border:1px solid #ccc;"></td>';
+    if((i+1) % 3 === 0) html += '</tr><tr>';
+  });
+  html += '</tr></table>';
+  return html;
+}
+
+function row(label, value){
+  return '<tr><td style="padding:5px 8px;background:#f2f0eb;font-weight:bold;width:34%;border:1px solid #ccc;font-size:10.5pt;">'+esc(label)+'</td>'+
+         '<td style="padding:5px 8px;border:1px solid #ccc;font-size:10.5pt;">'+(esc(value) || '—')+'</td></tr>';
+}
+
+function openReport(){
+  if(!val('empresa') || !val('tecnico')){
+    showToast('Preencha ao menos Empresa e Técnico responsável');
+    return;
+  }
+  const sigImg = sigHasContent ? sigCanvas.toDataURL('image/png') : null;
+  const safeName = (val('empresa') || 'cliente').replace(/[^a-zA-Z0-9]+/g,'_');
+  const dateStr = val('dataAtendimento') || new Date().toISOString().slice(0,10);
+  const fileName = 'RAT_' + safeName + '_' + dateStr;
+
+  const LOGO = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 54" width="48" height="43"><g transform="translate(30,28)"><polygon points="0,0 -10,-10 0,-23 10,-10" fill="#c8102e" transform="rotate(0)"/><polygon points="0,0 -10,-10 0,-23 10,-10" fill="#c8102e" transform="rotate(120)"/><polygon points="0,0 -10,-10 0,-23 10,-10" fill="#c8102e" transform="rotate(240)"/></g></svg>`;
+
+  const content = `
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>${fileName}</title>
+<style>
+*{box-sizing:border-box;}
+body{margin:0;font-family:Calibri,Arial,sans-serif;color:#1b1f24;background:#fff;}
+.no-print{background:#2e3a46;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.no-print span{color:#c9d2da;font-size:13px;flex:1;}
+.pbtn{font-family:Arial,sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.4px;padding:10px 20px;border:none;border-radius:3px;cursor:pointer;}
+.pbtn-red{background:#c8102e;color:#fff;}
+.pbtn-dl{background:#fff;color:#2e3a46;}
+.wrap{max-width:800px;margin:0 auto;padding:28px 24px 48px;}
+.rpt-header{display:flex;align-items:center;gap:16px;margin-bottom:8px;padding-bottom:16px;border-bottom:3px solid #c8102e;}
+.brand{display:flex;align-items:center;gap:10px;}
+.brand-name{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2e3a46;line-height:1.3;}
+.sep{width:1px;height:44px;background:#ddd;margin:0 8px;}
+.rpt-title h1{font-size:20px;color:#c8102e;margin:0;font-weight:800;text-transform:uppercase;}
+.rpt-title .sub{font-size:11px;color:#5b6b7a;margin-top:3px;}
+h2{font-size:12pt;background:#2e3a46;color:#fff;padding:6px 10px;margin:22px 0 8px;font-family:Arial,sans-serif;}
+table{border-collapse:collapse;width:100%;margin-bottom:6px;}
+td{padding:5px 8px;border:1px solid #ccc;font-size:10.5pt;vertical-align:top;}
+td.lbl{background:#f2f0eb;font-weight:bold;width:34%;}
+.section-text{border:1px solid #ccc;padding:8px;font-size:10.5pt;min-height:18px;white-space:pre-wrap;}
+.footer-line{margin-top:40px;padding-top:14px;border-top:1px solid #ccc;font-size:10px;color:#999;text-align:center;}
+img.sig{max-width:260px;border-bottom:1px solid #999;}
+@media print{
+  .no-print{display:none!important;}
+  body{margin:0;}
+  .wrap{padding:16px 12px;}
+  h2{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .lbl{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+}
+</style>
+</head>
+<body>
+<div class="no-print">
+  <span>Relatório pronto — imprima ou salve como PDF para enviar por e-mail.</span>
+  <button class="pbtn pbtn-red" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
+  <button class="pbtn pbtn-dl" onclick="downloadDoc()">⬇ Baixar Word (.doc)</button>
+</div>
+<div class="wrap">
+  <div class="rpt-header">
+    <div class="brand">
+      ${LOGO}
+      <div class="brand-name">MITSUBISHI<br>ELECTRIC</div>
+    </div>
+    <div class="sep"></div>
+    <div class="rpt-title">
+      <h1>Relatório de Assistência Técnica</h1>
+      <div class="sub">Gerado em ${new Date().toLocaleString('pt-BR')} · CNC / Automação Industrial</div>
+    </div>
+  </div>
+
+  <h2>1. Marcação de ponto${isMultiDay ? ' — '+dayTimes.length+' dias' : ''}</h2>
+  ${dayTimes.map((d,i)=>{
+    const lbl = isMultiDay ? `<b>Dia ${i+1}</b><br>` : '';
+    const ci = d.ciData&&d.ciHora ? dateBR(d.ciData)+' às '+d.ciHora : '—';
+    const co = d.coData&&d.coHora ? dateBR(d.coData)+' às '+d.coHora : '—';
+    const ip = d.ipData&&d.ipHora ? dateBR(d.ipData)+' às '+d.ipHora : '—';
+    const fp = d.fpData&&d.fpHora ? dateBR(d.fpData)+' às '+d.fpHora : '—';
+    const pEl = document.getElementById('d'+i+'_tsPausa');
+    const tEl = document.getElementById('d'+i+'_tsTotal');
+    const tp = pEl ? pEl.textContent : '00:00';
+    const tt = tEl ? tEl.textContent : '00:00';
+    return `${lbl}<table>${row('Check-in',ci)}${row('Início da pausa',ip)}${row('Fim da pausa',fp)}${row('Check-out',co)}${row('Motivo da pausa',d.motivo)}${row('Justificativa',d.just||'—')}${row('Tempo em pausa',tp)}${row('Tempo no atendimento',tt)}</table>`;
+  }).join('<hr style="margin:12px 0;border:none;border-top:1px dashed #ccc;">')}
+  ${dayTimes.length > 1 ? `
+  <table style="margin-top:10px;background:#2e3a46;color:#fff;">
+    <tr>
+      <td style="padding:8px 10px;font-weight:bold;font-size:11pt;color:#c9d2da;width:50%;">TOTAL EM PAUSA (TODOS OS DIAS)</td>
+      <td style="padding:8px 10px;font-size:14pt;font-weight:800;color:#fff;">${document.getElementById('grandPausa')?document.getElementById('grandPausa').textContent:'—'}</td>
+    </tr>
+    <tr>
+      <td style="padding:8px 10px;font-weight:bold;font-size:11pt;color:#c9d2da;">TOTAL NO ATENDIMENTO (TODOS OS DIAS)</td>
+      <td style="padding:8px 10px;font-size:14pt;font-weight:800;color:#fff;">${document.getElementById('grandTotal')?document.getElementById('grandTotal').textContent:'—'}</td>
+    </tr>
+  </table>` : ''}
+
+  <h2>2. Dados do atendimento</h2>
+  <table>${row('Nº da tarefa / OS', val('numOS'))}${row('Data do atendimento', dateBR(val('dataAtendimento')))}${row('Prioridade', val('prioridade'))}${row('Técnico responsável', val('tecnico'))}${row('Tipo de tarefa', val('tipoTarefa'))}</table>
+
+  <h2>3. Dados do cliente</h2>
+  <table>${row('Empresa', val('empresa'))}${row('Endereço', val('endereco'))}${row('Nome do contato', val('contatoNome'))}${row('E-mail', val('contatoEmail'))}${row('Telefone', val('contatoTelefone'))}</table>
+
+  <h2>4. Dados da máquina</h2>
+  <table>${row('Fabricante da máquina', val('fabricanteMaquina'))}${row('Modelo da máquina', val('modeloMaquina'))}${row('Nº de série (máquina)', val('serieMaquina'))}${row('Modelo do CNC', val('modeloCNC'))}${row('Nº de série (CNC)', val('serieCNC'))}${row('Máquina estava parada?', getRadio('maquinaParada'))}${row('Máquina em garantia?', getRadio('maquinaGarantia'))}</table>
+
+  <h2>5. Diagnóstico</h2>
+  <p><b>Defeito constatado / Problema relatado:</b></p><div class="section-text">${esc(val('problema'))}</div>
+  <p><b>Causa:</b></p><div class="section-text">${esc(val('causa'))}</div>
+  <p><b>Solução aplicada:</b></p><div class="section-text">${esc(val('solucao'))}</div>
+
+  <h2>6. Equipamentos instalados</h2>
+  <p><b>Foi instalado equipamento?</b> ${getRadio('equipInstalado') || '—'}</p>
+  ${getRadio('equipInstalado')==='Sim' ? `<p><b>Descrição:</b></p><div class="section-text">${esc(val('descInstalado'))}</div><p><b>Fotos:</b></p>${photoGrid(photoState.imgsInstalado)}` : ''}
+
+  <h2>7. Equipamentos retirados</h2>
+  <p><b>Foi retirado equipamento?</b> ${getRadio('equipRetirado') || '—'}</p>
+  ${getRadio('equipRetirado')==='Sim' ? `<p><b>Descrição:</b></p><div class="section-text">${esc(val('descRetirado'))}</div><p><b>Condição:</b></p><div class="section-text">${esc(val('condicaoRetirado'))}</div><p><b>Fotos:</b></p>${photoGrid(photoState.imgsRetirado)}` : ''}
+
+  <h2>8. Fotos gerais do relatório</h2>
+  <p style="color:#5b6b7a;font-size:10.5pt;">${photoState.imgsRelatorio.length} foto(s) anexada(s)</p>
+  ${photoGrid(photoState.imgsRelatorio)}
+
+  <h2>9. Informações para o Laboratório</h2>
+  <div class="section-text">${esc(val('labInfo')) || '—'}</div>
+
+  <h2>10. Assinatura do cliente</h2>
+  <div style="margin-top:10px;">
+    ${sigImg ? `<img class="sig" src="${sigImg}" style="display:block; margin-bottom:4px;">` : '<p style="color:#777;">Assinatura não coletada.</p>'}
+    <div style="border-top:1.5px solid #000; width:300px; padding-top:6px;">
+      <strong>${(val('assinaturaNome') || 'NOME NÃO INFORMADO').toUpperCase()}</strong><br>
+      <span style="font-size:10pt;">Documento: ${val('assinaturaDocumento') || '—'}</span>
+    </div>
+  </div>
+
+  <div class="footer-line">Mitsubishi Electric do Brasil · Relatório de Assistência Técnica · ${new Date().toLocaleDateString('pt-BR')}</div>
+</div>
+<script>
+function downloadDoc(){
+  const docHtml = document.documentElement.outerHTML;
+  const blob = new Blob(['\ufeff', docHtml], {type:'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '${fileName}.doc';
+  a.click();
+}
+<\/script>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank');
+  if(!win){ showToast('Permita pop-ups para abrir o relatório'); return; }
+  win.document.write(content);
+  win.document.close();
+}
+
+/* ---------------- contrato de empréstimo ---------------- */
+let empProdutos = [emptyEmpProd()];
+
+function emptyEmpProd(){
+  return {cod:'', desc:'', serie:'', qtde:'1', nf:'', modeloMaq:'', serieMaq:'', data:''};
+}
+
+function toggleEmprestimo(show){
+  document.getElementById('empBlock').classList.toggle('show', show);
+  if(show) renderEmpProdutos();
+  saveDraft();
+}
+
+function syncEmpProd(i){
+  const g = k => { const el=document.getElementById('ep'+i+'_'+k); return el?el.value:''; };
+  empProdutos[i] = { cod:g('cod'), desc:g('desc'), serie:g('serie'), qtde:g('qtde'),
+                     nf:g('nf'), modeloMaq:g('modeloMaq'), serieMaq:g('serieMaq'), data:g('data') };
+  saveDraft();
+}
+
+function addEmpProduto(){
+  empProdutos.push(emptyEmpProd());
+  renderEmpProdutos();
+  saveDraft();
+}
+
+function removeEmpProduto(i){
+  if(empProdutos.length<=1){ showToast('Precisa ter ao menos 1 produto'); return; }
+  empProdutos.splice(i,1);
+  renderEmpProdutos();
+  saveDraft();
+}
+
+function renderEmpProdutos(){
+  const wrap = document.getElementById('empProdutosWrap');
+  if(!wrap) return;
+  wrap.innerHTML = empProdutos.map((p,i)=>`
+    <div class="emp-produto-row">
+      <div class="field"><label>Código</label><input type="text" id="ep${i}_cod" value="${p.cod}" oninput="syncEmpProd(${i})" placeholder="Cód."></div>
+      <div class="field"><label>Descrição do produto</label><input type="text" id="ep${i}_desc" value="${p.desc}" oninput="syncEmpProd(${i})" placeholder="Descrição"></div>
+      <div class="field"><label>Nº série (produto)</label><input type="text" id="ep${i}_serie" value="${p.serie}" oninput="syncEmpProd(${i})"></div>
+      <div class="field"><label>Qtde</label><input type="number" id="ep${i}_qtde" value="${p.qtde}" oninput="syncEmpProd(${i})" min="1" style="width:60px;"></div>
+      <div class="field"><label>Nº Nota Fiscal</label><input type="text" id="ep${i}_nf" value="${p.nf}" oninput="syncEmpProd(${i})"></div>
+      <div class="field"><label>Modelo da máquina</label><input type="text" id="ep${i}_modeloMaq" value="${p.modeloMaq}" oninput="syncEmpProd(${i})"></div>
+      <div class="field"><label>Nº série (máquina)</label><input type="text" id="ep${i}_serieMaq" value="${p.serieMaq}" oninput="syncEmpProd(${i})"></div>
+      <div class="field"><label>Data</label><input type="date" id="ep${i}_data" value="${p.data}" oninput="syncEmpProd(${i})"></div>
+      <button type="button" class="emp-rm-btn" onclick="removeEmpProduto(${i})" title="Remover">×</button>
+    </div>`).join('');
+}
+
+/* ---- geração do contrato ---- */
+function openContrato(){
+  if(getRadio('emprestimo')!=='Sim'){
+    showToast('Marque "Sim — gerar contrato" na seção de equipamentos instalados');
+    return;
+  }
+  if(!val('empresa')){
+    showToast('Preencha o nome da empresa (seção 3)');
+    return;
+  }
+
+  const meses = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const dtRaw = val('empDataContrato');
+  let dataExtenso = '_____ de __________________ de 20____';
+  if(dtRaw){
+    const [y,m,d] = dtRaw.split('-');
+    dataExtenso = parseInt(d)+' de '+meses[parseInt(m)-1]+' de '+y;
+  }
+  const local = val('empLocalContrato') || 'São Paulo';
+
+  const tabelaRows = empProdutos.map(p=>`
+    <tr>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.cod||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.desc||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.serie||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;text-align:center;">${p.qtde||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.nf||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.modeloMaq||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.serieMaq||''}</td>
+      <td style="padding:5px 8px;border:1px solid #ccc;">${p.data ? dateBR(p.data) : ''}</td>
+    </tr>`).join('');
+
+  const content = `
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Contrato Empréstimo — ${val('empresa')}</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Calibri,Arial,sans-serif;font-size:11pt;color:#111;margin:0;background:#fff;}
+.no-print{background:#2e3a46;padding:12px 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.no-print span{color:#c9d2da;font-size:13px;flex:1;}
+.pbtn{font-family:Arial,sans-serif;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.4px;padding:10px 20px;border:none;border-radius:3px;cursor:pointer;}
+.pbtn-red{background:#c8102e;color:#fff;}
+.pbtn-dl{background:#fff;color:#2e3a46;}
+.wrap{max-width:820px;margin:0 auto;padding:32px 28px 60px;}
+.header-logo{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #c8102e;}
+.brand-name{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;color:#2e3a46;line-height:1.3;}
+.doc-title{text-align:center;font-weight:800;font-size:14pt;text-transform:uppercase;margin-bottom:4px;}
+.doc-subtitle{text-align:center;font-size:11pt;font-weight:700;margin-bottom:22px;}
+p{margin:.6em 0;text-align:justify;line-height:1.6;}
+.indent{margin-left:2cm;}
+.bold{font-weight:800;}
+table{border-collapse:collapse;width:100%;margin:10px 0;}
+th{background:#2e3a46;color:#fff;padding:6px 8px;font-size:10pt;text-align:left;border:1px solid #ccc;}
+td{padding:5px 8px;border:1px solid #ccc;font-size:10pt;}
+.clausula{font-weight:800;margin-top:18px;}
+.sig-table{margin-top:40px;}
+.sig-table td{border:none;padding:8px 12px;text-align:center;width:50%;}
+.sig-line{border-top:1px solid #333;padding-top:6px;margin-top:40px;}
+.footer{font-size:9pt;color:#888;text-align:right;margin-top:20px;}
+@media print{.no-print{display:none!important;}.wrap{padding:16px 12px;}}
+</style>
+</head>
+<body>
+<div class="no-print">
+  <span>Contrato pronto — imprima ou salve como PDF para enviar por e-mail.</span>
+  <button class="pbtn pbtn-red" onclick="window.print()">🖨 Imprimir / Salvar PDF</button>
+  <button class="pbtn pbtn-dl" onclick="downloadDoc()">⬇ Baixar Word (.doc)</button>
+</div>
+<div class="wrap">
+
+  <div class="header-logo">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 54" width="48" height="43"><g transform="translate(30,28)"><polygon points="0,0 -10,-10 0,-23 10,-10" fill="#c8102e" transform="rotate(0)"/><polygon points="0,0 -10,-10 0,-23 10,-10" fill="#c8102e" transform="rotate(120)"/><polygon points="0,0 -10,-10 0,-23 10,-10" fill="#c8102e" transform="rotate(240)"/></g></svg>
+    <div><div class="brand-name">MITSUBISHI ELECTRIC</div><div style="font-size:9px;color:#888;">DO BRASIL COMÉRCIO E SERVIÇOS LTDA</div></div>
+  </div>
+
+  <div class="doc-title">TERMO DE COMPROMISSO, AUTORIZAÇÃO E</div>
+  <div class="doc-subtitle">RESPONSABILIDADE POR PRODUTO DE DEMONSTRAÇÃO</div>
+
+  <p>Pelo presente Instrumento Particular, e na melhor forma de direito, as partes adiante nominadas e qualificadas, de um lado:</p>
+
+  <p class="indent"><span class="bold">MITSUBISHI ELECTRIC DO BRASIL COMÉRCIO E SERVIÇOS LTDA</span>., empresa de direito privado, inscrita no CNPJ/MF sob nº 46.550.505/0008-05, situada na Avenida Gisele Constantino, nº 1578, Parque Bela Vista, Votorantim/SP, CEP 18.110-650, neste ato representada por seu representante legal na forma do Contrato Social, doravante designada simplesmente <span class="bold">"MEB"</span>; e,</p>
+
+  <p class="indent">E, de outro lado,</p>
+
+  <p class="indent"><span class="bold">${val('empresa') || '_________________________'}</span>, empresa de direito privado, inscrita no CNPJ/MF sob nº <span class="bold">${val('empCNPJ') || '___________________'}</span>, situada à <span class="bold">${val('empEndereco') || val('endereco') || '__________________________'}</span>, cidade de <span class="bold">${val('empCidade') || '______________'}</span> no Estado <span class="bold">${val('empEstado') || '__'}</span>, CEP <span class="bold">${val('empCEP') || '_________'}</span>, neste ato representada por Sr(a)</p>
+
+  <p class="indent">Nome: <span class="bold">${val('empRepNome') || '______________________________________________________'}</span>, cidadania: <span class="bold">${val('empRepCidadania') || '____________'}</span>, estado civil: <span class="bold">${val('empRepEstCivil') || '____________'}</span>, profissão: <span class="bold">${val('empRepProfissao') || '____________'}</span> inscrito no CPF sob o nº <span class="bold">${val('empRepCPF') || '________________'}</span> e no RG sob o nº <span class="bold">${val('empRepRG') || '________________'}</span>, doravante designada simplesmente <span class="bold">"CLIENTE"</span>;</p>
+
+  <p><span class="bold">CONSIDERANDO QUE:</span></p>
+  <p class="indent">- O <span class="bold">CLIENTE</span> solicitou receber da <span class="bold">MEB</span> o(s) produto(s) "Demonstração" indicados abaixo, para conhecer e experimentar tal(is) produto(s), bem como eventualmente adquiri-lo(s);</p>
+
+  <p><span class="bold">Tabela A:</span></p>
+  <table>
+    <tr>
+      <th>Código Produto</th><th>Descrição Produto</th><th>Número de Série</th><th>Qtde</th>
+      <th>Nº Nota Fiscal</th><th>Modelo Máquina</th><th>Número de Série</th><th>Data</th>
+    </tr>
+    ${tabelaRows}
+  </table>
+
+  <p class="indent">- A legislação estadual tributária, possibilita realizar a circulação deste(s) produto(s) entre as partes, com a finalidade de demonstração, sem que haja a incidência de ICMS;</p>
+  <p class="indent">- O ICMS somente será devido quando ocorrer a transmissão de propriedade de tal(is) produto(s) ou quando o <span class="bold">CLIENTE</span> devolver a mercadoria em prazo superior a 60 (sessenta) dias, contados da sua(s) respectiva(s) saída(s);</p>
+
+  <p class="clausula">CLÁUSULA 1ª – DO COMPROMISSO DE SOLICITAR A TRANSMISSÃO DO(S) PRODUTO(S) OU A SUA DEVOLUÇÃO À MEB NO PRAZO LEGAL DE 60 (SESSENTA) DIAS</p>
+  <p>1.1. A <span class="bold">MEB</span> se compromete a enviar o(s) produto(s) relacionados nesse termo de compromisso e na respectiva Nota Fiscal de demonstração, para que o <span class="bold">CLIENTE</span> conheça tal(is) produto(s) viabilizando que o <span class="bold">CLIENTE</span> experimento o(s) mesmo(s), em sua linha de produção, para que eventual e oportunamente o(s) adquira.</p>
+  <p><span class="bold">Parágrafo primeiro:</span> O <span class="bold">CLIENTE</span> se compromete a receber o(s) produto(s) que lhe foi(ram) enviado(s) ou retirar os mesmos, a depender do que for acordado oportunamente, com a finalidade de demonstração, teste de produção e havendo interesse da transmissão de sua propriedade, ou seja, efetivação da compra, efetuará a comunicação de seu interesse dentro do prazo de <span class="bold">30 (trinta)</span> dias ou em até 7 (sete) dias da data do recebimento do orçamento de reparo, aquele que ocorrer primeiro.</p>
+  <p><span class="bold">Parágrafo segundo:</span> Não havendo interesse de transmissão da mercadoria, o <span class="bold">CLIENTE</span> se compromete a devolve-lo(s) a MEB no prazo de 5 (cinco) dias, também contados a partir do envio do orçamento de reparo do(s) produto(s) da <span class="bold">MEB</span>.</p>
+  <p><span class="bold">Parágrafo terceiro:</span> É de responsabilidade do cliente devolver o(s) produto(s) em embalagens em seu estado original, conforme recebido, sem qualquer dano, responsabilizando-se por todos os custos inerentes a tal devolução e por qualquer dano que der causa, independentemente de sua culpa exclusiva.</p>
+
+  <p class="clausula">CLÁUSULA 2ª – DA RESPONSABILIDADE PELO RECOLHIMENTO DO ICMS E ENCARGOS DEVIDOS</p>
+  <p>2.1. Considerando o compromisso do <span class="bold">CLIENTE</span> mencionado na Cláusula 1ª supra, não havendo interesse de transmissão da propriedade do(s) produto(s), o <span class="bold">CLIENTE</span> será responsável pela devolução deste(s) dentro do prazo de 60 (sessenta) dias, a contar da saída do(s) produto(s) da MEB, sob pena de assumir o reembolso à <span class="bold">MEB</span> dos respectivos encargos aplicados, exigidos pelo item 1 do §1º do art. 320 do RICMS/SP.</p>
+
+  <p class="clausula">CLÁUSULA 3ª – DA AUTORIZAÇÃO DE EMISSÃO DE NOTA FISCAL DE COMPRA E VENDA DO PRODUTO DANIFICADO</p>
+  <p>3.1. Nos termos dos parágrafos segundo e terceiro da Cláusula I deste TERMO, o <span class="bold">CLIENTE</span> assume o compromisso de devolver o(s) produto(s) e embalagens à <span class="bold">MEB</span> no prazo legal de 60 (sessenta) dias, em seu estado original, caso contrário, aplicar-se-á os parágrafos abaixo:</p>
+  <p><span class="bold">Parágrafo primeiro:</span> Caso o(s) produto(s) seja(m) devolvido(s) à MEB e seja constatado que o(s) mesmo(s) está(ão) danificado(s) em razão de ação ou omissão por parte do CLIENTE, as partes pactuam que o CLIENTE adquirirá tal(is) produto(s) pelo valor da NFE original.</p>
+  <p><span class="bold">Parágrafo Segundo:</span> O CLIENTE, desde já, autoriza a MEB a emitir Nota Fiscal de venda do(s) produto(s) danificado(s) de forma automática.</p>
+
+  <p class="clausula">CLÁUSULA 4ª - DO INADIMPLEMENTO E DA PENALIDADE</p>
+  <p>Havendo inadimplemento do <span class="bold">CLIENTE</span> em relação a qualquer cláusula prevista nesse contrato ou na letra da legislação aplicável, o <span class="bold">CLIENTE</span> arcará com o montante devido, acrescido de multa de 2% (dois por cento) sobre o saldo devedor, juros de mora de 1% (um por cento) ao mês, correção monetária pelo IPCA, sem prejuízo da justa indenização por perdas e danos em favor da <span class="bold">MEB</span>.</p>
+
+  <p class="clausula">CLÁUSULA 5ª - DA IRREVOGABILIDADE E IRRETRATABILIDADE</p>
+  <p>5.1. O presente Instrumento é firmado em caráter irrevogável e irretratável, obrigando não só as partes, mas também seus sucessores legais a qualquer título.</p>
+
+  <p class="clausula">CLÁUSULA 6ª – DAS DISPOSIÇÕES ESPECIAIS</p>
+  <p>6.1. O(s) produto(s) objeto desse <span class="bold">TERMO</span> poderão, a depender do que as partes combinarem oportunamente, ser entregue(s) pela <span class="bold">MEB</span> no endereço indicado pelo <span class="bold">CLIENTE</span> ou ser retirado(s) pelo <span class="bold">CLIENTE</span> nas dependências da MEB. A partir da chegada no <span class="bold">CLIENTE</span>, a responsabilidade pela guarda, manutenção e integridade do(s) produto(s) é exclusiva do <span class="bold">CLIENTE</span>.</p>
+
+  <p class="clausula">CLÁUSULA 7ª – DAS DISPOSIÇÕES GERAIS</p>
+  <p>7.1. As partes reconhecem como verídicas as informações contempladas no preâmbulo desse <span class="bold">TERMO</span>, sendo certo que tais disposições integram o presente instrumento para todos os fins legais.</p>
+  <p>7.2. As partes convencionam que o equipamento objeto deste pacto poderá ser utilizado normalmente na linha de produção do <span class="bold">CLIENTE</span>, pelo prazo estabelecido neste instrumento e que anomalias ocasionadas por falha técnica ou mecânica do equipamento, que prejudique o seu funcionamento, será reparada pela assistência técnica da <span class="bold">MEB</span>, sem custos para o <span class="bold">CLIENTE</span>.</p>
+  <p>7.3. As partes elegem o Foro da Comarca da Capital do Estado de São Paulo – SP, com exclusão de qualquer outro, por mais privilegiado que seja, para dirimir as dúvidas ou executar as obrigações constantes no presente <span class="bold">TERMO</span>.</p>
+
+  <p style="margin-top:28px;">E, por ser verdade, firmam o presente, em 02 (duas) vias de igual teor e forma, na presença de 02 (duas) testemunhas, para que produza seus jurídicos e legais efeitos.</p>
+  <p><span class="bold">${local}, ${dataExtenso}.</span></p>
+
+  <table class="sig-table">
+    <tr>
+      <td>
+        <div class="sig-line">
+          <strong>MITSUBISHI ELECTRIC DO BRASIL<br>COMÉRCIO E SERVIÇO LTDA.</strong><br>
+          Nome: Thiago R M Caetano<br>CPF: 309.733.308-80
+        </div>
+      </td>
+      <td>
+        <div class="sig-line">
+          ${sigImg ? `<img class="sig" src="${sigImg}" style="max-height:60px; margin-bottom:-10px;"><br>` : ''}
+          <div style="border-top:1px solid #000; padding-top:4px;">
+            <strong>CLIENTE (Campo 10)</strong><br>
+            Nome: ${(val('empClienteNome') || val('assinaturaNome') || '_________________________').toUpperCase()}<br>
+            Doc: ${val('empClienteCPF') || val('assinaturaDocumento') || '_________________________'}
+          </div>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <div class="sig-line">
+          <strong>Testemunha 1:</strong><br>
+          Nome: ${val('empTest1Nome') || '_________________________'}<br>
+          CPF: ${val('empTest1CPF') || '_________________________'}
+        </div>
+      </td>
+      <td>
+        <div class="sig-line">
+          <strong>Testemunha 2:</strong><br>
+          Nome: ${val('empTest2Nome') || '_________________________'}<br>
+          CPF: ${val('empTest2CPF') || '_________________________'}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <div class="footer">Ver2_lgjr_050519_iad — Mitsubishi Electric do Brasil — Página 1 de 1</div>
+</div>
+<script>
+function downloadDoc(){
+  const blob = new Blob(['\ufeff', document.documentElement.outerHTML], {type:'application/msword'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'Contrato_Emprestimo_${(val('empresa')||'cliente').replace(/[^a-zA-Z0-9]+/g,'_')}.doc';
+  a.click();
+}
+<\/script>
+</body></html>`;
+
+  const win = window.open('', '_blank');
+  if(!win){ showToast('Permita pop-ups para abrir o contrato'); return; }
+  win.document.write(content);
+  win.document.close();
+}
+
+/* ---------------- init ---------------- */
+window.addEventListener('load', () => {
+  renderDays();
+  setupCanvas();
+  loadDraft();
+  document.querySelectorAll('input,textarea,select').forEach(el => {
+    el.addEventListener('input', saveDraft);
+    el.addEventListener('change', saveDraft);
+  });
+  // Restaura valores do dia 0 no DOM estático
+  restoreDay0();
+});
+</script>
+</body>
+</html>
